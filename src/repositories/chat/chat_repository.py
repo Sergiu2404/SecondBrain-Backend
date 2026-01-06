@@ -22,4 +22,7 @@ class ChatRepository:
         return session.query(Message).filter(Message.chat_id == chat_id).order_by(Message.created_at).all()
 
     def get_last_message_in_chat(self, session, chat_id: UUID):
-        ...
+        return session.query(Message).filter(Message.chat_id == chat_id).order_by(Message.created_at.desc()).first()
+
+    def get_latest_chat(self, session):
+        return session.query(Chat).order_by(Chat.created_at.desc()).first()
