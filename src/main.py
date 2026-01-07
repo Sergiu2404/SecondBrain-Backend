@@ -34,4 +34,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat.router, prefix="/api/chat")
+app.include_router(chat.router, prefix="/api/chats")

@@ -18,8 +18,25 @@ class ChatService:
         chat = Chat(title="New Chat")
         return self.__repo.create_chat(session, chat)
 
-    def get_messages_by_chat(self, session, chat_id: UUID):
-        return self.__repo.get_messages_by_chat(session, chat_id)
+    def get_messages_by_chat(self, session, chat_id: UUID, limit: int | None):
+        return self.__repo.get_messages_by_chat(session, chat_id, limit)
 
     def get_latest_chat(self, session):
         return self.__repo.get_latest_chat(session)
+
+    def get_chats(self, session):
+        return self.__repo.get_chats(session)
+
+    def is_first_user_message_in_chat(self, session, chat_id: UUID) -> bool:
+        count = (
+            session.query(Message)
+            .filter(
+                Message.chat_id == chat_id,
+                Message.role == "user"
+            )
+            .count()
+        )
+        return count == 1
+
+    def update_chat_title(self, session, chat_id: UUID, title: str):
+        self.__repo.update_chat_title(session, chat_id, title)
