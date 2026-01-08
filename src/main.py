@@ -3,7 +3,7 @@ from starlette.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from src.db.db_context import PostgresDatabaseContext, postgres_engine
-from src.api.routes import chat
+from src.api.routes import chat, filesystem
 
 origins = [
     "http://localhost:5173",
@@ -35,3 +35,4 @@ app.add_middleware(
 )
 
 app.include_router(chat.router, prefix="/api/chats")
+app.include_router(filesystem.router, prefix="/api/file-system")

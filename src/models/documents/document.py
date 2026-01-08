@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, ForeignKey, String, DateTime
 from sqlalchemy.dialects.postgresql.base import UUID
+from sqlalchemy.orm import relationship
 
 from src.db.base import PG_Base
 
@@ -14,3 +15,5 @@ class Document(PG_Base):
     storage_path = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+    file_node = relationship("FileSystemNode", back_populates="document")
