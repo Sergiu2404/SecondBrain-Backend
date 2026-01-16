@@ -19,7 +19,7 @@ class FileSystemNode(PG_Base):
 
     children = relationship(
         "FileSystemNode",
-        cascade="all, delete-orphan",
+        cascade="all, delete-orphan", # to handle automatically the children deletion
         backref=backref("parent", remote_side=[id])
     )
     document = relationship(

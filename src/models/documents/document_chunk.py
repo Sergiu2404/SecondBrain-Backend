@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, Integer, Text, String
 from sqlalchemy.dialects.postgresql.base import UUID
+from sqlalchemy.orm import relationship
 
 from src.db.base import PG_Base
 
@@ -12,3 +13,5 @@ class DocumentChunk(PG_Base):
     chunk_index = Column(Integer)
     text = Column(Text)
     vector_id = Column(String)
+
+    document = relationship("Document", back_populates="chunks")

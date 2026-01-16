@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from src.models.documents.document import Document
+from src.models.documents.document_chunk import DocumentChunk
 from src.models.file_system.file_system_node import FileSystemNode
 
 
@@ -28,3 +29,7 @@ class FileSystemRepository:
             session.delete(node)
             session.commit()
         return node_id
+
+    def save_chunks(self, session, chunks: list[DocumentChunk]):
+        session.add_all(chunks)
+        session.commit()

@@ -16,4 +16,12 @@ class Document(PG_Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
-    file_node = relationship("FileSystemNode", back_populates="document")
+    file_node = relationship(
+        "FileSystemNode",
+        back_populates="document"
+    )
+    chunks = relationship(
+        "DocumentChunk",
+        back_populates="document",
+        cascade="all, delete-orphan"
+    )

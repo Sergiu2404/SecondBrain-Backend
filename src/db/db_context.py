@@ -8,8 +8,8 @@ from src.models.file_system import file_system_node
 from src.models.chat import chat, message
 from src.config import config
 
-postgres_engine = create_engine(config.PG_CONNECTION_STRING)
-SessionLocal = sessionmaker(bind=postgres_engine, autocommit=False, autoflush=False)
+postgres_engine = create_engine(config.PG_CONNECTION_STRING) # connectivity to postgres
+SessionLocal = sessionmaker(bind=postgres_engine, autocommit=False, autoflush=False) # sessions creation factory
 
 def get_db():
     db = SessionLocal()
