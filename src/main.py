@@ -9,18 +9,33 @@ origins = [
     "http://localhost:5173",
     "http://localhost:5174"
 ]
+#
+# @asynccontextmanager
+# async def lifespan():
+#     pg_db_context = PostgresDatabaseContext(postgres_engine)
+#     pg_db_context.test_connection()
+#     pg_db_context.init_tables()
+#
+#     yield # app runs here
+#
+#     # closing db connections here
 
 @asynccontextmanager
-async def lifespan():
+async def lifespan(app: FastAPI):
     pg_db_context = PostgresDatabaseContext(postgres_engine)
-    pg_db_context.test_connection()
-    pg_db_context.init_tables()
+    try:
+        pg_db_context.test_connection()
+        pg_db_context.init_tables()
+        print("Tables created successfully")
+    except Exception as e:
+        print(f"Error during startup: {e}")
 
-    yield # app runs here
+    yield
 
-    # closing db connections here
 
-app = FastAPI(title="Second-Brain API")
+app = FastAPI(title="Second-Brain API", lifespan=lifespan)
+
+app = FastAPI(title="Second-Brain API", lifespan=lifespan)
 
 @app.get("/ping")
 def ping():
