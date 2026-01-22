@@ -14,7 +14,10 @@ from src.models.chat.chat import Chat
 from src.models.chat.message import Message
 from src.config import config
 
-postgres_engine = create_engine(config.PG_CONNECTION_STRING) # connectivity to postgres
+postgres_engine = create_engine(
+    config.PG_CONNECTION_STRING,
+    # echo=True
+) # connectivity to postgres
 print(config.PG_CONNECTION_STRING)
 SessionLocal = sessionmaker(bind=postgres_engine, autocommit=False, autoflush=False) # sessions creation factory
 

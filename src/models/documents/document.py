@@ -10,9 +10,14 @@ class Document(PG_Base):
     __tablename__ = "documents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    file_node_id = Column(UUID(as_uuid=True), ForeignKey("file_nodes.id"))
+    file_node_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("file_nodes.id", ondelete="CASCADE"),
+        nullable=False
+    )
     document_type = Column(String)
     storage_path = Column(String)
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
@@ -23,5 +28,6 @@ class Document(PG_Base):
     chunks = relationship(
         "DocumentChunk",
         back_populates="document",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        passive_deletes=True
     )

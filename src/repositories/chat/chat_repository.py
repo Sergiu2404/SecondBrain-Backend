@@ -7,6 +7,9 @@ class ChatRepository:
         session.add(chat)
         session.commit()
         session.refresh(chat)
+        print(f"Chat saved with id={chat.id}")
+        saved = session.query(Chat).filter(Chat.id == chat.id).first()
+        assert saved is not None, "Insert failed"
         return chat
 
     def save_message(self, session, message: Message):

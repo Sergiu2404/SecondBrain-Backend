@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from src.db.db_context import get_db
 from src.dtos.chat.chat import ChatResponseDTO
 from src.dtos.chat.message import ChatMessageDTO, ChatMessageResponseDTO
+from src.models.chat.chat import Chat
 from src.repositories.chat.chat_repository import ChatRepository
 from src.services.chat.chat_service import ChatService
 from src.services.chat.llm_service import LLMService
@@ -23,6 +24,10 @@ llama = ChatOllama(
 )
 llm_service = LLMService(llama)
 
+
+@router.get("/debug/chats")
+def debug_chats(db: Session = Depends(get_db)):
+    return db.query(Chat).all()
 
 
 @router.get("", response_model=List[ChatResponseDTO], status_code=status.HTTP_200_OK)

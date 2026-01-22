@@ -3,6 +3,7 @@ import os
 from uuid import UUID, uuid4
 import docx
 from fastapi import UploadFile
+from langchain_ollama import OllamaEmbeddings
 from pypdf import PdfReader
 import pandas as pd
 from sqlalchemy import text
@@ -16,6 +17,10 @@ UPLOAD_DIR = "storage/documents"
 class FileSystemService:
     def __init__(self, repo):
         self.__repo = repo
+        self.__embedding_model = OllamaEmbeddings(
+            model="nomic-embed-text",
+            base_url="http://localhost:11434"
+        )
         if not os.path.exists(UPLOAD_DIR):
             os.makedirs(UPLOAD_DIR)
 
@@ -44,6 +49,11 @@ class FileSystemService:
         overlap = 200
 
         chunks = []
+
+        # raw_chunks = [text[i: i + chunk_size] for i in range(0, len(text), chunk_size - overlap)]
+        #
+        # embeddings = await self.__embeddings_model.aembed_documents(raw_chunks)
+
         for i in range(0, len(text), chunk_size - overlap):
             chunk_content = text[i : i + chunk_size]
 
@@ -104,25 +114,15 @@ class FileSystemService:
         """)
         return session.query(FileSystemNode).from_statement(query).params(node_id=node_id).all()
 
-    # def delete_node(self, session, node_id: UUID):
-    #     nodes_to_check = self.__repo.get_node_and_children(session, node_id)
-    #
-    #     for node in nodes_to_check:
-    #         if node.type == "file" and node.document:
-    #             if os.path.exists(node.document.storage_path):
-    #                 print(f"local path: {node.document.storage_path}")
-    #                 # os.remove(node.document.storage_path)
-    #
-    #     self.__repo.delete_node(session, node_id)
-
     def delete_node(self, session, node_id: UUID):
-        nodes_to_delete = self.__repo.get_node_and_all_descendants(session, node_id)
+        node = session.query(FileSystemNode).filter(FileSystemNode.id == node_id).first()
+        if not node:
+            return None
 
         # BEFORE the database delete to ensure data availability
         file_paths_to_remove = []
-        for node in nodes_to_delete:
-            if node.type == "file" and node.document:
-                file_paths_to_remove.append(node.document.storage_path)
+        if node.type == "file" and node.document:
+            file_paths_to_remove.append(node.document.storage_path)
 
         self.__repo.delete_node(session, node_id)
 

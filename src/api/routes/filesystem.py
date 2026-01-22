@@ -22,6 +22,7 @@ async def create_folder(
     node_data: dict,
     session: Session = Depends(get_db)
 ):
+    print(node_data)
     return await filesystem_service.create_node(
         session,
         name=node_data["name"],

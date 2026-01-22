@@ -32,9 +32,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-
-app = FastAPI(title="Second-Brain API", lifespan=lifespan)
-
 app = FastAPI(title="Second-Brain API", lifespan=lifespan)
 
 @app.get("/ping")
