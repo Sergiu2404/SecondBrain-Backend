@@ -1,7 +1,6 @@
 from typing import List
 from fastapi import APIRouter, status
 from fastapi.params import Depends
-from langchain_ollama import ChatOllama
 from uuid import UUID
 from sqlalchemy.orm import Session
 
@@ -12,17 +11,19 @@ from src.models.chat.chat import Chat
 from src.repositories.chat.chat_repository import ChatRepository
 from src.services.chat.chat_service import ChatService
 from src.services.chat.llm_service import LLMService
+from src.api.dependencies import get_llm_service
+
 
 router = APIRouter()
 chat_repo = ChatRepository()
 chat_service = ChatService(chat_repo)
 
 # llama = Ollama(model="llama3", base_url="http://localhost:11434")
-llama = ChatOllama(
-    model="llama3",
-    base_url="http://localhost:11434"
-)
-llm_service = LLMService(llama)
+# llama = ChatOllama(
+#     model="llama3",
+#     base_url="http://localhost:11434"
+# )
+# llm_service = LLMService(llama)
 
 
 @router.get("/debug/chats")
@@ -36,7 +37,11 @@ def get_chats(session: Session = Depends(get_db)):
     return chats
 
 @router.post("/send-message")
-async def send_message(message: ChatMessageDTO, session: Session = Depends(get_db)): #
+async def send_message(
+        message: ChatMessageDTO,
+        session: Session = Depends(get_db),
+        llm_service: LLMService = Depends(get_llm_service)
+): #
     new_message = chat_service.create_message(session, chat_id=message.chat_id, role="user", content=message.content)
 
     if chat_service.is_first_user_message_in_chat(session, message.chat_id):

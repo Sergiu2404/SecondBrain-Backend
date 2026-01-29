@@ -1,0 +1,3 @@
+this is just a test file for the vectors db to see if model is then able to understand why i wrote here.
+This document explain shortly difference between emplace_back and push_back in C++.
+Summary. Use push_back when you have an existing temporary object that you want to move into your std::vector . Or, more generally, use push_back when you want to move an existing object into your std::vector . Use emplace_back when you create a new temporary object.

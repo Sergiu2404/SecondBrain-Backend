@@ -3,11 +3,11 @@ import os
 from uuid import UUID, uuid4
 import docx
 from fastapi import UploadFile
-from langchain_ollama import OllamaEmbeddings
 from pypdf import PdfReader
 import pandas as pd
 from sqlalchemy import text
 
+from src.api.dependencies import get_embedding_model
 from src.models.documents.document import Document
 from src.models.documents.document_chunk import DocumentChunk
 from src.models.file_system.file_system_node import FileSystemNode
@@ -17,10 +17,11 @@ UPLOAD_DIR = "storage/documents"
 class FileSystemService:
     def __init__(self, repo):
         self.__repo = repo
-        self.__embedding_model = OllamaEmbeddings(
-            model="nomic-embed-text",
-            base_url="http://localhost:11434"
-        )
+        self.__embedding_model = get_embedding_model()
+        # self.__embedding_model = OllamaEmbeddings(
+        #     model="nomic-embed-text",
+        #     base_url="http://localhost:11434"
+        # )
         if not os.path.exists(UPLOAD_DIR):
             os.makedirs(UPLOAD_DIR)
 
@@ -45,26 +46,29 @@ class FileSystemService:
             return ""
 
     async def __chunk_and_save(self, session, doc_id: UUID, text: str):
-        chunk_size = 1200
-        overlap = 200
-
+        chunk_size = 800 # reduced chunk size for ollama nomic embeddings
+        overlap = 150 # reduced overlap for ollama nomic embeddings
         chunks = []
 
-        # raw_chunks = [text[i: i + chunk_size] for i in range(0, len(text), chunk_size - overlap)]
-        #
-        # embeddings = await self.__embeddings_model.aembed_documents(raw_chunks)
-
+        raw_text_chunks = []
         for i in range(0, len(text), chunk_size - overlap):
-            chunk_content = text[i : i + chunk_size]
+            raw_text_chunks.append(text[i : i + chunk_size])
 
+        if not raw_text_chunks:
+            return
+        # ollama embedding model
+        embeddings = await self.__embedding_model.aembed_documents(raw_text_chunks)
+        # hugging face embedding model
+
+        for i, content in enumerate(raw_text_chunks):
             chunks.append(DocumentChunk(
                 document_id=doc_id,
-                chunk_index=len(chunks),
-                text=chunk_content
+                chunk_index=i,
+                text=content,
+                embedding=embeddings[i]
             ))
 
-        if chunks:
-            self.__repo.save_chunks(session, chunks)
+        self.__repo.save_chunks(session, chunks)
 
     def get_all_nodes(self, session):
         return self.__repo.get_all_nodes(session)
@@ -94,12 +98,6 @@ class FileSystemService:
                 await self.__chunk_and_save(session, saved_doc.id, extracted_text)
 
         return saved_node
-
-    # def get_all_nodes_in_tree(node):
-    #     nodes = [node]
-    #     for child in node.children:
-    #         nodes.extend(get_all_nodes_in_tree(child))
-    #     return nodes
 
     def get_node_and_all_descendants(self, session, node_id: UUID):
         # finds the parent and recursively finds all children/grandchildren
