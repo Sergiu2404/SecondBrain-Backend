@@ -26,12 +26,14 @@ async def create_folder(
         name=node_data["name"],
         type="folder",
         parent_id=node_data.get("parent_id"),
+        path=node_data.get("path"),
         file=None,
     )
 
 @router.post("/files", response_model=FIleSystemNodeResponseDTO, status_code=status.HTTP_201_CREATED)
 async def upload_file(
     name: str = Form(...),
+    path: str = Form(...),
     parent_id: Optional[UUID] = Form(None),
     file: UploadFile = File(...),
     session: Session = Depends(get_db)
@@ -41,6 +43,7 @@ async def upload_file(
         name=name,
         type="file",
         parent_id=parent_id,
+        path=path,
         file=file
     )
 

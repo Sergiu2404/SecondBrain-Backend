@@ -18,6 +18,8 @@ class FileSystemNode(PG_Base):
         ForeignKey("file_nodes.id", ondelete="CASCADE"),
         nullable=True
     ) # point to parent node
+    path = Column(String, nullable=False, default="/")
+
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -75,8 +75,8 @@ class FileSystemService:
     def get_all_nodes(self, session):
         return self.__repo.get_all_nodes(session)
 
-    async def create_node(self, session, name: str, type: str, parent_id: UUID, file: UploadFile = None):
-        node = FileSystemNode(name=name, type=type, parent_id=parent_id)
+    async def create_node(self, session, name: str, type: str, parent_id: UUID, path: str, file: UploadFile = None):
+        node = FileSystemNode(name=name, type=type, parent_id=parent_id, path=path)
         saved_node = self.__repo.save_node(session, node)
 
         if type == "file" and file:

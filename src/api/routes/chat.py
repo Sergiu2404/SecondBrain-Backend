@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, status
 from fastapi.params import Depends
 from uuid import UUID
@@ -61,7 +61,7 @@ def create_chat(session: Session = Depends(get_db)):
     new_chat = chat_service.create_chat(session)
     return new_chat
 
-@router.get("/latest-chat", response_model=ChatResponseDTO, status_code=status.HTTP_200_OK)
+@router.get("/latest-chat", response_model=Optional[ChatResponseDTO], status_code=status.HTTP_200_OK)
 def get_latest_chat(session: Session = Depends(get_db)):
     new_chat = chat_service.get_latest_chat(session)
     return new_chat
