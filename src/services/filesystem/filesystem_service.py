@@ -70,6 +70,9 @@ class FileSystemService:
 
         self.__repo.save_chunks(session, chunks)
 
+    def get_similar_chunks(self, session, query_vector: list[float], limit: int = 5):
+        return self.__repo.get_similar_chunks(session, query_vector, limit)
+
     def get_all_nodes(self, session):
         return self.__repo.get_all_nodes(session)
 

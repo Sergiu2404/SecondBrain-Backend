@@ -1,4 +1,5 @@
 from uuid import UUID
+from pgvector.sqlalchemy import Vector
 
 from src.models.documents.document import Document
 from src.models.documents.document_chunk import DocumentChunk
@@ -33,3 +34,6 @@ class FileSystemRepository:
     def save_chunks(self, session, chunks: list[DocumentChunk]):
         session.add_all(chunks)
         session.commit()
+
+    def get_similar_chunks(self, session, query_vector: list[float], limit: int = 5):
+        return session.query(DocumentChunk).order_by(DocumentChunk.embedding.cosine_distance(query_vector)).limit(limit).all()

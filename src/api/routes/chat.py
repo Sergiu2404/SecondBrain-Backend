@@ -2,29 +2,20 @@ from typing import List
 from fastapi import APIRouter, status
 from fastapi.params import Depends
 from uuid import UUID
+
+from langchain_ollama import OllamaEmbeddings
 from sqlalchemy.orm import Session
 
 from src.db.db_context import get_db
 from src.dtos.chat.chat import ChatResponseDTO
 from src.dtos.chat.message import ChatMessageDTO, ChatMessageResponseDTO
 from src.models.chat.chat import Chat
-from src.repositories.chat.chat_repository import ChatRepository
-from src.services.chat.chat_service import ChatService
 from src.services.chat.llm_service import LLMService
-from src.api.dependencies import get_llm_service
-
+from src.api.dependencies import get_llm_service, get_embedding_model, get_chat_service, get_filesystem_service
 
 router = APIRouter()
-chat_repo = ChatRepository()
-chat_service = ChatService(chat_repo)
-
-# llama = Ollama(model="llama3", base_url="http://localhost:11434")
-# llama = ChatOllama(
-#     model="llama3",
-#     base_url="http://localhost:11434"
-# )
-# llm_service = LLMService(llama)
-
+chat_service = get_chat_service()
+filesystem_service = get_filesystem_service()
 
 @router.get("/debug/chats")
 def debug_chats(db: Session = Depends(get_db)):
@@ -40,9 +31,14 @@ def get_chats(session: Session = Depends(get_db)):
 async def send_message(
         message: ChatMessageDTO,
         session: Session = Depends(get_db),
-        llm_service: LLMService = Depends(get_llm_service)
+        llm_service: LLMService = Depends(get_llm_service),
+        embedding_model: OllamaEmbeddings = Depends(get_embedding_model)
 ): #
     new_message = chat_service.create_message(session, chat_id=message.chat_id, role="user", content=message.content)
+    query_vector = await embedding_model.aembed_query(message.content)
+
+    similar_chunks = filesystem_service.get_similar_chunks(session, query_vector, limit=4)
+    context_text = "\n\n".join([chunk.text for chunk in similar_chunks])
 
     if chat_service.is_first_user_message_in_chat(session, message.chat_id):
         title = await llm_service.generate_chat_title(message.content)
@@ -50,7 +46,12 @@ async def send_message(
 
     limited_chat_messages = chat_service.get_messages_by_chat(session, chat_id=message.chat_id, limit=5)
 
-    llm_response = await llm_service.get_response(limited_chat_messages)
+    # llm_response = await llm_service.get_response(limited_chat_messages)
+    llm_response = await llm_service.get_response_with_context(
+        question=message.content,
+        context=context_text,
+        limited_chat_history=limited_chat_messages
+    )
     llm_message = chat_service.create_message(session, chat_id=message.chat_id, role="assistant", content=llm_response)
 
     return {"response": llm_message.content}

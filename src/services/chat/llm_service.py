@@ -4,9 +4,17 @@ from langchain_ollama import ChatOllama
 
 from src.api.routes.chat import ChatMessageDTO
 
-
 class LLMService:
-    SYSTEM_PROMPT = "You are a helpful assistant, reply briefly and clearly. Answer in the same language as the user."
+    SYSTEM_PROMPT = (
+        "You are a helpful assistant, reply briefly and clearly. "
+        "Answer in the same language as the user."
+    )
+    SYSTEM_PROMPT_CONTEXT = (
+        "You are a helpful assistant, reply briefly and clearly. "
+        "Answer in the same language as the user."
+        "Use the following context to answer the user's question."
+        "If the answer isn't in the context, say you don't know based on the documents."
+    )
 
     def __init__(self, llama: ChatOllama):
         self.__llama = llama
@@ -31,12 +39,40 @@ class LLMService:
         llm_response = await self.__llama.ainvoke(messages)
         return llm_response.content.strip()
 
+    async def get_response_with_context(self, question: str, context: str, limited_chat_history: List[ChatMessageDTO]):
+        messages: List[BaseMessage] = [
+            SystemMessage(
+                content=
+                self.SYSTEM_PROMPT_CONTEXT +
+                f"--- DOCUMENT DATA START ---\n"
+                f"{context}\n"
+                f"--- DOCUMENT DATA END ---"
+            )
+        ]
+
+        for message in limited_chat_history:
+            if message.role == "user":
+                messages.append(
+                    HumanMessage(content=message.content)
+                )
+            elif message.role == "assistant":
+                messages.append(
+                    AIMessage(content=message.content)
+                )
+
+        messages.append(HumanMessage(content=question))
+
+        llm_response = await self.__llama.ainvoke(messages)
+        return llm_response.content.strip()
+
     async def generate_chat_title(self, first_message: str) -> str:
         messages = [
             SystemMessage(
                 content=(
-                    "Generate a short, clear chat title (max 6 words) for our current discussion. "
-                    "No quotes. No punctuation at the end."
+                    f"""
+                    Generate a short, clear chat title (max 6 words) for our current discussion.
+                    No quotes. No punctuation at the end.
+                    """
                 )
             ),
             HumanMessage(content=first_message),

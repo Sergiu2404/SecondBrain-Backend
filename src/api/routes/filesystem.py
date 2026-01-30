@@ -4,14 +4,12 @@ from uuid import UUID
 from fastapi import APIRouter, status, Depends, Form, UploadFile, File
 from sqlalchemy.orm import Session
 
+from src.api.dependencies import get_filesystem_service
 from src.db.db_context import get_db
 from src.dtos.filesystem.filesystem import FIleSystemNodeResponseDTO
-from src.repositories.filesystem.filesystem_repository import FileSystemRepository
-from src.services.filesystem.filesystem_service import FileSystemService
 
 router = APIRouter()
-filesystem_repo = FileSystemRepository()
-filesystem_service = FileSystemService(filesystem_repo)
+filesystem_service = get_filesystem_service()
 
 @router.get("", status_code=status.HTTP_200_OK)
 def get_nodes(session: Session = Depends(get_db)):
