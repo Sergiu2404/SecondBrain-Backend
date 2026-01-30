@@ -10,25 +10,34 @@ _llama = ChatOllama(
     model="llama3",
     base_url="http://localhost:11434"
 )
-_embedding_model_instance = None
 
 _chat_repo = ChatRepository()
 _filesystem_repo = FileSystemRepository()
 
-_chat_service = ChatService(_chat_repo)
-_filesystem_service = FileSystemService(_filesystem_repo)
-
-_llm_service = LLMService(_llama)
-
+_embedding_model_instance = None
+_chat_service_instance = None
+_filesystem_service_instance = None
+_llm_service_instance = None
 
 def get_chat_service() -> ChatService:
-    return _chat_service
+    global _chat_service_instance
+    if _chat_service_instance is None:
+        _chat_service_instance = ChatService(_chat_repo)
+    return _chat_service_instance
 
 def get_filesystem_service() -> FileSystemService:
-    return _filesystem_service
+    global _filesystem_service_instance
+    if _filesystem_service_instance is None:
+        model = get_embedding_model()
+        _filesystem_service_instance = FileSystemService(_filesystem_repo, model)
+    return _filesystem_service_instance
 
 def get_llm_service() -> LLMService:
-    return _llm_service
+    global _llm_service_instance
+    if _llm_service_instance is None:
+        _llm_service_instance = LLMService(_llama)
+    return _llm_service_instance
+
 def get_embedding_model() -> OllamaEmbeddings:
     global _embedding_model_instance
     if _embedding_model_instance is None:

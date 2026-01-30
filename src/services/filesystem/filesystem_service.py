@@ -7,7 +7,6 @@ from pypdf import PdfReader
 import pandas as pd
 from sqlalchemy import text
 
-from src.api.dependencies import get_embedding_model
 from src.models.documents.document import Document
 from src.models.documents.document_chunk import DocumentChunk
 from src.models.file_system.file_system_node import FileSystemNode
@@ -15,9 +14,9 @@ from src.models.file_system.file_system_node import FileSystemNode
 UPLOAD_DIR = "storage/documents"
 
 class FileSystemService:
-    def __init__(self, repo):
+    def __init__(self, repo, embedding_model):
         self.__repo = repo
-        self.__embedding_model = get_embedding_model()
+        self.__embedding_model = embedding_model
         # self.__embedding_model = OllamaEmbeddings(
         #     model="nomic-embed-text",
         #     base_url="http://localhost:11434"
